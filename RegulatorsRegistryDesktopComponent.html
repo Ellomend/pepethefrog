@@ -1,0 +1,130 @@
+<div>
+    <!-- Диалог подтверждения удаления -->
+    <popup
+      v-model:visible="confirmData.shown"
+      :title="`Удаление объекта ЦТП ${confirmData.number}`"
+      :width="500"
+      height="auto"
+      :show-title="true"
+      :drag-enabled="true"
+    >
+      Введите причину удаления:
+      <d-text-area
+        class="w-full mt-1 mb-4"
+        value-change-event="keyup"
+        v-model:value="confirmData.comment"
+        :height="90"
+        :max-length="100"
+        @value-changed="confirmData.validate()"
+      />
+  
+      <div class="text-right mt-1.5">
+        <d-button
+          text="Удалить"
+          icon="check"
+          type="danger"
+          class="mr-1"
+          @click="onDoRemove"
+          :disabled="!confirmData.isValid"
+        />
+        <d-button
+          text="Отмена"
+          icon="remove"
+          styling-mode="text"
+          @click="confirmData.shown = false"
+          autofocus
+        />
+      </div>
+    </popup>
+  
+    <!-- Табы -->
+    <tab-panel>
+      <!-- Таб реестра объектов -->
+      <tab-item title="Объекты">
+        <div class="contents-holder">
+          <!-- Фильтры -->
+          <div class="desktop-filters-line-holder first">
+            <a
+              id="filtersLink"
+              href="javascript:"
+              class="dx-button-text dx-theme-accent-as-text-color"
+              @click="filtersOpened = !filtersOpened"
+              ><strong
+                ><i class="dx-icon-spindown filter-icon"></i> Фильтры</strong
+              ><em>{{filterText}}</em></a
+            >
+          </div>
+            <div>
+                <pre>{{regulatorsRegistryStore}}</pre>
+            </div>
+          <popover
+            v-model:visible="filtersOpened"
+            @initialized="initializeFilters"
+            @hidden="filtersOpened = false"
+            title="Фильтры"
+            :show-title="true"
+            :show-close-button="true"
+            :shading="false"
+            target="#filtersLink"
+            position="bottom"
+          >
+            <filters />
+          </popover>
+  
+          <!-- Тулбар -->
+          <toolbar class="actions-toolbar second">
+            <tool-item
+              location="before"
+              widget="dxButton"
+              :disabled="totalCount <= 0"
+              :options="exportButtonOptions"
+            />
+            <tool-item
+              location="after"
+              widget="dxButton"
+              :options="refreshButtonOptions"
+            />
+          </toolbar>
+  
+          <popup v-if="editCard.isShown"
+            v-model:visible="editCard.isShown"
+            :show-title="true"
+            :title="editCard.title"
+            content-template="popup-content"
+            :wrapper-attr="cardPopupAttrs"
+            :drag-enabled="true"
+            :width="890"
+            :height="830"
+          >
+            <template #popup-content>
+              <regulators-registry-desktop-details-card
+                :id="editCard.id"
+                @close="onEditCardClose"
+              ></regulators-registry-desktop-details-card>
+            </template>
+          </popup>
+  
+          <!-- Реестр -->
+          <div ref="gridWrapper">
+            <data-grid
+              class="third"
+              :data-request="onDataRequest"
+              :count-request="onCountRequest"
+              :columns="columns.value"
+              :desktop-id="desktopId"
+              width="calc(100vw - 40px)"
+              :height="`calc(100vh - 56px - ${gridOffsetTop}px)`"
+              key-field="Id"
+              ref="grid"
+            >
+              <template #link="{data, value, id}">
+                <a href="javascript:" @click="onShowDetails(value, id)"
+                  >{{value}}</a
+                >
+              </template>
+            </data-grid>
+          </div>
+        </div>
+      </tab-item>
+    </tab-panel>
+  </div>
